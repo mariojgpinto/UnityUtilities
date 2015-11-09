@@ -79,6 +79,18 @@ public class Tools{
 		yield break;
 	}
 	
+	public static void Shuffle(string[] texts)
+	{
+		// Knuth shuffle algorithm :: courtesy of Wikipedia :)
+		for (int t = 0; t < texts.Length; t++ )
+		{
+			string tmp = texts[t];
+			int r = Random.Range(t, texts.Length);
+			texts[t] = texts[r];
+			texts[r] = tmp;
+		}
+	}
+	
 	public static System.Collections.Generic.List<T> Randomize<T>(System.Collections.Generic.List<T> list)
 	{
 		System.Collections.Generic.List<T> randomizedList = new System.Collections.Generic.List<T>();
