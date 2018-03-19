@@ -41,7 +41,7 @@ public class MouseLookFPS : MonoBehaviour {
 	
 	void Update ()
 	{
-		//method = (InputMethod)Settings_FirstPersonView.modeIdx;
+		method = (InputMethod)Settings_FirstPersonView.modeIdx;
 
 		if (method == InputMethod.Mouse) {
 			if (axes == RotationAxes.MouseXAndY) {

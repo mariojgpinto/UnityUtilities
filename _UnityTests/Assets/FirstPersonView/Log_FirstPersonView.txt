@@ -1,0 +1,7 @@
+Mário Pinto
+mariojgpinto@gmail.com
+
+v0.1
+- Add FPS Control through mouse and touch control
+- Added inverted controls
+- Added setting controllers

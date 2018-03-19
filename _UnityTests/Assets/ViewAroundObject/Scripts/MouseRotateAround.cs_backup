@@ -1,0 +1,553 @@
+﻿using UnityEngine;
+using System.Collections;
+using UnityEngine.SceneManagement;
+
+public class MouseRotateAround : MonoBehaviour {
+	public GameObject aux;
+
+	public Transform target;
+	public Vector3 targetLastPosition;
+	public float distance = 250;
+	public float desiredDistance = 250;
+	public float xSpeed = 1;
+	public float ySpeed = 100.0f;
+	public float distSpeed = 10;
+
+
+	public float yMinLimit = 10f;
+	public float yMaxLimit = 85f;
+
+	public float distanceMin = 15f;
+	public float distanceMax = 125f;
+
+
+	float x = 0.0f;
+	float y = 0.0f;
+
+	
+
+	public Camera mainCamera;
+	Texture2D auxTexture;
+
+	bool forceUpdate = false;
+
+	bool running = true;
+
+	float orig_distance;
+	Vector3 orig_target;
+	Vector3 orig_position;
+	Vector3 orig_rotation;
+	float orig_x;
+	float orig_y;
+
+	bool idle = false;
+
+	bool zooming = false;
+
+	#region UPDATE_POSITION
+	void MoveToPosition(Vector3 position) {
+		//StartCoroutine(CalcPosition(position));
+
+		if (!zooming) {
+			RaycastHit hit;
+			Ray ray = Camera.main.ScreenPointToRay(position);
+			if (Physics.Raycast(ray, out hit, 500.0f)) {
+
+				//GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				//cube.transform.position = hit.point;
+				//cube.transform.LookAt(mainCamera.transform, Vector3.up);
+				//Destroy(cube.GetComponent<Renderer>().material);
+
+				//Debug.Log("You selected the " + hit.transform.name); // ensure you picked right object
+				Debug.Log("Click On: " + hit.point + " - " + hit.collider.name);
+				target.position = hit.point;
+				//UpdatePosition();
+			}
+		}
+	}
+
+	public void ZoomIn() {
+		if (desiredDistance > Controller.zoomMinDistance) {
+			desiredDistance -= Controller.zoomStep;
+			zooming = true;
+		}
+	}
+
+	public void ZoomOut() {
+		if (desiredDistance < Controller.zoomMaxDistance) {
+			desiredDistance += Controller.zoomStep;
+			zooming = true;
+		}
+	}
+
+	void UpdatePosition() {
+		//POSITION TO TARGET
+		if (Vector3.Distance(target.position, targetLastPosition) > 1) {
+			float distTarget = Vector3.Distance(targetLastPosition, target.position);
+			Vector3 deslocation = (target.position - targetLastPosition).normalized * distTarget * Controller.translationDelta;
+
+			this.transform.position = this.transform.position + deslocation;
+			targetLastPosition = targetLastPosition + deslocation;
+
+			this.transform.LookAt(targetLastPosition);
+		}
+		else {
+			targetLastPosition = target.position;
+
+			//ZOOM DISTANCE
+			float dist = Vector3.Distance(target.position, this.transform.position);
+			float delta = Mathf.Abs(desiredDistance - dist);
+			if (delta > 1) {
+				Vector3 direction = (target.position - this.transform.position).normalized;
+
+				if (desiredDistance - dist > 0) {
+					//ZOOM OUT
+					this.transform.position = this.transform.position - direction * delta * Controller.zoomSensitivity;
+				}
+				else {
+					//ZOOM IN
+					this.transform.position = this.transform.position + direction * delta * Controller.zoomSensitivity;
+				}
+
+				distance = Vector3.Distance(target.position, this.transform.position);
+
+				zooming = true;
+				//Debug.Log("Current Dist: " + dist);
+			}
+			else {
+				zooming = false;
+			}
+		}
+	}
+	#endregion
+
+	#region UPDATE_ROTATION
+	void UpdateRotation() {
+		if (Controller.editorMode) {
+			if (forceUpdate || Input.GetMouseButton(0)) {
+				x += Input.GetAxis("Mouse X") * xSpeed * distance * Controller.rotationDelta;
+				y -= Input.GetAxis("Mouse Y") * ySpeed * Controller.rotationDelta;
+
+				y = ClampAngle(y, yMinLimit, yMaxLimit);
+
+				Quaternion rotation = Quaternion.Euler(y, x, 0);
+
+				distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * distSpeed, distanceMin, distanceMax);
+
+				Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
+				Vector3 position = rotation * negDistance + target.position;
+
+				transform.rotation = rotation;
+				transform.position = position;
+
+				forceUpdate = false;
+			}
+		}
+		else {
+			if (Input.touchCount > 0) {
+				Debug.Log("Touch: " + Input.touchCount);
+				if (forceUpdate || Input.GetTouch(0).phase == TouchPhase.Moved) {
+					//if(tour)
+					Debug.Log(Input.GetTouch(0).phase + " - " + Input.GetTouch(0).deltaPosition);
+
+					Vector2 touchDeltaPosition = Input.GetTouch(0).deltaPosition;
+
+					x += touchDeltaPosition.x * xSpeed * distance * Controller.rotationDelta;
+					y -= touchDeltaPosition.y * ySpeed * Controller.rotationDelta;
+
+					y = ClampAngle(y, yMinLimit, yMaxLimit);
+
+					Quaternion rotation = Quaternion.Euler(y, x, 0);
+
+					distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * distSpeed, distanceMin, distanceMax);
+
+					Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
+					Vector3 position = rotation * negDistance + target.position;
+
+					transform.rotation = rotation;
+					transform.position = position;
+
+					forceUpdate = false;
+				}
+			}
+		}
+	}
+
+	public static float ClampAngle(float angle, float min, float max) {
+		if (angle < -360F)
+			angle += 360F;
+		if (angle > 360F)
+			angle -= 360F;
+		return Mathf.Clamp(angle, min, max);
+	}
+
+	void RotateModel() {
+		x += 1 * xSpeed * distance * Controller.idleSpeed;
+
+		y = ClampAngle(y, yMinLimit, yMaxLimit);
+
+		Quaternion rotation = Quaternion.Euler(y, x, 0);
+
+		distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * distSpeed, distanceMin, distanceMax);
+
+		Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
+		Vector3 position = rotation * negDistance + target.position;
+
+		transform.rotation = rotation;
+		transform.position = position;
+	}
+	#endregion
+
+	#region CLICKABLES
+	void CheckClickables(Vector3 position) {
+		RaycastHit hit;
+		Ray ray = Camera.main.ScreenPointToRay(position);
+		if (Physics.Raycast(ray, out hit, 1600.0f)) {
+			if (hit.collider.transform.parent.name == "FPSs") {
+				running = false;
+
+				StartCoroutine(GoToFPS(hit.collider.gameObject));
+			}
+		}
+	}
+
+	IEnumerator GoToFPS(GameObject collider) {
+		Vector3 startPosition = this.transform.position;
+		Vector3 startRotation = this.transform.rotation.eulerAngles;
+
+		Vector3 endPosition = collider.transform.position + Vector3.up * 2;
+
+		float duration = Controller.doubleClickTransition;
+		float progress = 0;
+
+		bool loading = false;
+
+		while (progress < 1) {
+			this.transform.position = Vector3.LerpUnclamped(startPosition, endPosition, progress);
+
+			//this.transform.rotation = Quaternion.Euler(Vector3.LerpUnclamped(startRotation, endPosition - startPosition, progress));
+
+			if (progress > .85f && !loading) {
+				if (collider.name.EndsWith("1")) {
+					print("LOAD SCENE 1");
+					SceneManager.LoadSceneAsync("FPS1");
+				}
+				else {
+					print("LOAD SCENE 2");
+					SceneManager.LoadSceneAsync("FPS2");
+				}
+				loading = true;
+			}
+
+			progress += Time.deltaTime / duration;
+
+			yield return new WaitForEndOfFrame();
+		}
+
+		this.transform.position = endPosition;
+
+		if(!loading) {
+			if (collider.name.EndsWith("1")) {
+				print("LOAD SCENE 1");
+				SceneManager.LoadSceneAsync("FPS1");
+			}
+			else {
+				print("LOAD SCENE 2");
+				SceneManager.LoadSceneAsync("FPS2");
+			}
+		}
+
+		//running = true;
+	}
+	#endregion
+
+	#region RESET
+	public void Reset() {
+		running = false;
+
+		StartCoroutine(GoToReset());
+	}
+
+
+	IEnumerator GoToReset() {
+		Vector3 startPosition = this.transform.position;
+		Vector3 startRotation = this.transform.rotation.eulerAngles;
+
+		float deltaDistance = distance - orig_distance;
+		Vector3 deltaPosition = startPosition - orig_position;
+		Vector3 deltaRotation = startRotation - orig_rotation;
+
+		Vector3 targetStartPosition = target.position;
+		Vector3 targetEndPosition = orig_target;
+
+		float duration = 2f;
+		float progress = 0;
+	
+		while(progress < 1) {
+			this.transform.position = Vector3.LerpUnclamped(startPosition, orig_position, progress);
+
+			target.position = Vector3.LerpUnclamped(targetStartPosition, targetEndPosition, progress);
+
+			//this.transform.rotation = Quaternion.Euler(Vector3.LerpUnclamped(startRotation, orig_rotation, progress));
+			this.transform.LookAt(target);
+
+			progress += Time.deltaTime / duration;
+
+			yield return new WaitForEndOfFrame();
+		}
+
+		this.transform.position = orig_position;
+
+		this.transform.rotation = Quaternion.Euler(orig_rotation);
+
+		targetLastPosition = orig_target;
+
+		distance = orig_distance;
+		desiredDistance = orig_distance;
+
+		target.position = orig_target;
+		x = orig_x;
+		y = orig_y;
+
+		running = true;
+	}
+	#endregion
+
+	#region UNITY_CALLBACKS
+	// Use this for initialization
+	void Start() {
+		
+		Vector3 angles = transform.eulerAngles;
+		x = angles.y;
+		y = angles.x;
+
+		targetLastPosition = target.position;
+
+		forceUpdate = true;
+
+		orig_distance = distance;
+		orig_target = target.position;
+		orig_position = this.transform.position;
+		orig_rotation = this.transform.rotation.eulerAngles;
+		orig_x = x;
+		orig_y = y;
+
+		//idle = true;
+	}
+
+	float _doubleTapTimeD;
+
+	void Update() {
+		if (idle) {
+			if (TouchController.hasTouch || Input.GetMouseButtonDown(0)) {
+				//STOP IDLE
+				idle = false;
+
+				if (Controller.editorMode) {
+					TouchController.lastTouchTime = Time.realtimeSinceStartup;
+				}
+			}
+			else {
+				//ROTATE
+				RotateModel();
+			}
+		} else
+		if (running && !Controller.debug) {
+			if (Controller.editorMode) {
+				if (Input.GetMouseButtonDown(0)) {
+					TouchController.lastTouchTime = Time.realtimeSinceStartup;
+				}
+			}
+
+			UpdateRotation();
+
+			UpdatePosition();
+
+			if (Controller.editorMode) {
+				bool doubleTapD = false;
+
+				#region doubleTapD
+				if (Input.GetMouseButtonDown(0)) {
+					Debug.Log("Click1");
+					if (Time.time < _doubleTapTimeD + Controller.doubleClickTime) {
+						Debug.Log("Double Click");
+						doubleTapD = true;
+					}
+					_doubleTapTimeD = Time.time;
+				}
+				#endregion
+
+				if (doubleTapD) {
+					MoveToPosition(Input.mousePosition);
+				}
+			}
+			else {
+				if (TouchController.doubleClick) {
+					MoveToPosition(TouchController.position);
+				}
+			}
+
+
+			if (Controller.editorMode) {
+				if (Input.GetMouseButtonUp(2)) {
+					CheckClickables(Input.mousePosition);
+				}
+
+			}
+			else {
+				if (TouchController.click) {
+					CheckClickables(TouchController.position);
+				}
+			}
+
+
+			if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Alpha3)) {
+				MoveRoofs();
+			}
+
+
+
+
+
+			if (TouchController.hasTouch) {
+				idle = false;
+			} else
+			if (TouchController.inactive) {
+				idle = true;
+				Reset();
+				//GOTO IDLE MODE
+			}
+		}
+	}
+
+	public void MoveRoofs() {
+		if (!movingRoofs) {
+			movingRoofs = true;
+			StartCoroutine(MoveRoof());
+		}
+	}
+
+	public GameObject telhado; bool home = true;
+	bool movingRoofs = false;
+
+	IEnumerator MoveRoof() {
+		Vector3 startPosition = telhado.transform.localPosition;
+		Vector3 endPosition = telhado.transform.localPosition;
+
+		if (home) {
+			endPosition.y += Controller.roofMax;
+		}
+		else {
+			endPosition.y -= Controller.roofMax;
+		}
+
+		float progress = 0;
+
+		while (progress < 1) {
+			telhado.transform.localPosition = Vector3.LerpUnclamped(startPosition, endPosition, progress);
+
+			progress += Time.deltaTime / Controller.roofDuration;
+			yield return new WaitForEndOfFrame();
+		}
+
+		telhado.transform.localPosition = endPosition;
+
+		home = !home;
+
+		movingRoofs = false;
+	}
+	#endregion
+}
+
+
+/*
+
+		IEnumerator CalcPosition(Vector3 position) {
+		yield return new WaitForEndOfFrame();
+		var width = 2;
+		var height = 2;
+		var startX = Input.mousePosition.x;
+		var startY = Input.mousePosition.y;
+
+		Camera camOV = mainCamera;
+
+		RenderTexture currentRT = RenderTexture.active;
+
+		RenderTexture.active = camOV.targetTexture;
+		camOV.Render();
+		Texture2D imageOverview = new Texture2D(width, height, TextureFormat.ARGB32, false);
+		imageOverview.ReadPixels(new Rect(startX, startY, width, height), 0, 0);
+		imageOverview.Apply();
+		RenderTexture.active = currentRT;
+
+		Color c = imageOverview.GetPixel(0, 0);
+
+		if (c.a < 1) {
+			Debug.Log("FUNDO");
+		}
+		else {
+			Debug.Log("GEOMETRY");
+
+			yield return moonrake();
+		}
+	}
+
+	float raylength = 1600; //this distnace devides by 2 at the end of every distance test  and homes in on the clicked pixel distance
+
+	private Texture2D tex; // texture to read screen pixels at mouse position (slow needs a frame)
+	private Vector3 mpos;// mouse position
+	private Color scolor; // color at mouse point, can change when is occluded
+	private float testdistance; //current distance to place object with pink color at mouse point
+
+	private GameObject posGO;
+	private float fov = 0.785398175f;//Mathf.PI / 4.0;
+	private float timez;
+
+	IEnumerator moonrake() {
+		timez = Time.time;
+		testdistance = mainCamera.nearClipPlane + 0;
+		mpos = Input.mousePosition;
+		var ray = mainCamera.ScreenPointToRay(mpos);
+		GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		cube.transform.position = ray.GetPoint(1000);
+		cube.transform.LookAt(mainCamera.transform, Vector3.up);
+		Destroy(cube.GetComponent<Renderer>().material);
+		cube.transform.localScale = new Vector3(1, 1, 0.001f);
+
+		for (var k = 0; k < 15; k++) {
+			//.. These 3 lines are only aesthetic to stop the pink square flashing on screen
+			float worldSize = (2 * Mathf.Tan(fov / 2.0f)) * testdistance;
+			float size = 0.15f * worldSize;
+			float screen = 50.0f / Mathf.Max(Screen.width, Screen.height); //smallest pink dot possible is about 30.0/Mathf. etc
+			cube.transform.localScale = new Vector3(screen * size, screen * size, 0.0001f); //flat square seen from front, should make it small depending on num pixels on screen
+
+			cube.transform.position = ray.GetPoint(testdistance);
+
+			//GET PIXEL COLOR
+			var tex = new Texture2D(1, 1, TextureFormat.RGB24, false);
+			yield return new WaitForEndOfFrame();
+			tex.ReadPixels(new Rect(mpos.x, mpos.y, mpos.x, mpos.y), 0, 0);
+			tex.Apply();
+			scolor = tex.GetPixel(0, 0);
+
+			Destroy(tex);
+
+			//yield return new WaitForEndOfFrame();
+			raylength *= 0.5f;
+			if (scolor == Color.magenta) testdistance += raylength;
+			else testdistance -= raylength;
+
+		}
+		print("the selected pixel was at position: " + cube.transform.position);		
+		print("time taken for raycast without physics: " + (-timez + Time.time));
+
+		target.position = cube.transform.position;
+
+		Destroy(cube);
+
+		UpdatePosition();		
+	}
+
+
+
+*/

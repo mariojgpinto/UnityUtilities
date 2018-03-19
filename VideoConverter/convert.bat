@@ -1,0 +1,2 @@
+QuicktimeTools.exe "transcode" "-input" "360_RollerCoaster.mp4" "-output" "360_RollerCoaster.ogg" "-vbr" "4100000.000000" "-abr" "156000.000000"
+QuicktimeTools.exe "transcode" "-input" "360_Places.mp4" "-output" "360_Places.ogg" "-vbr" "4100000.000000" "-abr" "156000.000000"

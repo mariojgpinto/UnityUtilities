@@ -1,0 +1,11 @@
+Mário Pinto
+mariojgpinto@gmail.com
+
+v0.1
+- Add Labels
+- Add bool Toggles
+- Add float Slider
+- Add int Slider
+- Add string single line
+- Add string multi line
+- Add list toggle
