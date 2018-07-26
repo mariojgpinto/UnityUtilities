@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Controller : MonoBehaviour {
+public class Controller_TowerDefense : MonoBehaviour {
 	public GameObject prefab_Target;
 	public GameObject targets_parent;
 
@@ -11,12 +11,28 @@ public class Controller : MonoBehaviour {
 	public GameObject prefab_Enemy;
 
 	public Text text_TouchCount;
+	public Text text_WaveTime;
 
 	const int MAX_TARGETS = 4;
 	List<GameObject> targets = new List<GameObject>();
 
 	public static bool debug = true;
 
+	float timeBetweenNextEnemy = 2;
+
+	public GameObject MoreTowers;
+
+
+	IEnumerator SpawnEnemy_routine() {
+		while (true) {
+			yield return new WaitForSeconds(timeBetweenNextEnemy);
+			SpawnEnemy();
+
+			if(timeBetweenNextEnemy > 0.3f) {
+				timeBetweenNextEnemy = timeBetweenNextEnemy - 0.1f * Random.Range(0, 1.0f);
+			}
+		}
+	}
 
 	void SpawnEnemy() {
 		GameObject go = Instantiate(prefab_Enemy, enemy_parent.transform, false);
@@ -37,7 +53,7 @@ public class Controller : MonoBehaviour {
 			targets.Add(Instantiate(prefab_Target, targets_parent.transform, false));
 		}
 
-		InvokeRepeating("SpawnEnemy", 1, 2);
+		StartCoroutine(SpawnEnemy_routine());
 	}
 	
 	// Update is called once per frame
@@ -53,6 +69,14 @@ public class Controller : MonoBehaviour {
 
 		if (debug) {
 			text_TouchCount.text = "Touches: " + Input.touchCount;
+			text_WaveTime.text = "Wave Time: " + timeBetweenNextEnemy.ToString(".00");
 		}
+
+		if(Input.touchCount == 5) {
+			MoreTowers.SetActive(!MoreTowers.activeSelf);
+		}
+
+		if (Input.GetKeyDown(KeyCode.Escape))
+			MainController.LoadMainScene();
 	}
 }
