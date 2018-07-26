@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2015
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_UnityTests.CSharp", "_UnityTests.CSharp.csproj", "{33949281-7C31-EEEA-98C3-D0FF4412F74F}"
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_UnityTests", "Assembly-CSharp.csproj", "{C821CCB3-14C4-72FD-0A0A-C4CCA22F37D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{33949281-7C31-EEEA-98C3-D0FF4412F74F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{33949281-7C31-EEEA-98C3-D0FF4412F74F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{33949281-7C31-EEEA-98C3-D0FF4412F74F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{33949281-7C31-EEEA-98C3-D0FF4412F74F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C821CCB3-14C4-72FD-0A0A-C4CCA22F37D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C821CCB3-14C4-72FD-0A0A-C4CCA22F37D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C821CCB3-14C4-72FD-0A0A-C4CCA22F37D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C821CCB3-14C4-72FD-0A0A-C4CCA22F37D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
