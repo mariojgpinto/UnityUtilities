@@ -13,7 +13,7 @@ public class Timer{
 	
 	
 	
-	public void StartTimer(){
+	public void Run(){
 		_startTime = Time.realtimeSinceStartup;
 		isRunning = true;
 
@@ -22,21 +22,21 @@ public class Timer{
 		_isPaused = false; 
 	}
 	
-	public void StopTimer(){
+	public void Stop(){
 		_startTime = 0.0f;
 		_pauseDelta = 0;
 		isRunning = false;
 	}
 
-	public void PauseTimer(){
+	public void Pause(){
 		_pauseStartTime = Time.realtimeSinceStartup;
 
 		_isPaused = true;
 	}
 
-	public void RestartTimer(){
-		StopTimer();
-		StartTimer();
+	public void Restart(){
+		Stop();
+		Run();
 	}
 
 	public void ResumeTimer(){
@@ -45,7 +45,7 @@ public class Timer{
 		_isPaused = false; 
 	}
 	
-	public float CheckTimer(){
+	public float CheckTime(){
 		if(isRunning){
 			if(_isPaused){
 				return timeout - (_pauseStartTime - _startTime);
