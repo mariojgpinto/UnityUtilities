@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour {
-	public float hitForce = 1;
+	#region VARIABLES
+	public float hitForce = 2;
+
+	#endregion
+
+	#region UNITY_CALLBACKS
 	// Use this for initialization
 	void Start () {
 		
@@ -18,9 +23,9 @@ public class Bullet : MonoBehaviour {
 	private void OnTriggerEnter2D(Collider2D collision) {
 		try {
 			collision.gameObject.GetComponent<Enemy>().Hit(hitForce);
+			Destroy(this.gameObject);
 		}
 		catch (System.Exception) { /*ignore*/ }
-
-		Destroy(this.gameObject);
 	}
+	#endregion
 }

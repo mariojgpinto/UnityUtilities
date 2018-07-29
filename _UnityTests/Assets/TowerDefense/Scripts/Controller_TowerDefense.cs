@@ -28,7 +28,7 @@ public class Controller_TowerDefense : MonoBehaviour {
 			yield return new WaitForSeconds(timeBetweenNextEnemy);
 			SpawnEnemy();
 
-			if(timeBetweenNextEnemy > 0.3f) {
+			if(timeBetweenNextEnemy > 0.5f) {
 				timeBetweenNextEnemy = timeBetweenNextEnemy - 0.1f * Random.Range(0, 1.0f);
 			}
 		}
@@ -36,8 +36,10 @@ public class Controller_TowerDefense : MonoBehaviour {
 
 	void SpawnEnemy() {
 		GameObject go = Instantiate(prefab_Enemy, enemy_parent.transform, false);
+		Enemy enemy = go.GetComponent<Enemy>();
+
 		go.transform.position = new Vector3(
-			Random.Range(0, 2) > 0 ? -15 : 15,
+			Random.Range(-2, 2) > 0 ? -15 : 15,
 			Random.Range(-5f, 5f),
 			0);
 		if (go.transform.position.x < 0) {
@@ -45,6 +47,8 @@ public class Controller_TowerDefense : MonoBehaviour {
 			scale.y *= -1;
 			go.transform.localScale = scale;
 		}
+
+		EnemyFactory.CreateEnemy(ref enemy);
 	}
 
 	// Use this for initialization
